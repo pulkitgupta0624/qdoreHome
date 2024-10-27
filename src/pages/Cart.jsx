@@ -52,6 +52,19 @@ const ConfirmationModal = ({
     </div>
   );
 };
+
+// Loading Screen Component
+const LoadingScreen = () => (
+  <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center space-y-4">
+      <Loader2 className="h-12 w-12 animate-spin text-black" />
+      <p className="text-lg font-semibold text-gray-800">
+        Loading your cart...
+      </p>
+    </div>
+  </div>
+);
+
 const Cart = () => {
   const navigate = useNavigate();
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -61,6 +74,8 @@ const Cart = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const location = useLocation();
 
   const products = [
@@ -245,7 +260,6 @@ const Cart = () => {
       }
     }
   }, [location, navigate]);
-
   const fetchUserData = async () => {
     try {
       const response = await fetch(
@@ -271,16 +285,16 @@ const Cart = () => {
   };
 
   const fetchCart = async () => {
-    if (userInfo && userInfo.token) {
-      const userData = await fetchUserData();
-      if (!userData || !userData._id) {
-        setError("Failed to fetch user information.");
-        return;
-      }
+    try {
+      if (userInfo && userInfo.token) {
+        const userData = await fetchUserData();
+        if (!userData || !userData._id) {
+          setError("Failed to fetch user information.");
+          return;
+        }
 
-      const mongoUserId = userData._id;
+        const mongoUserId = userData._id;
 
-      try {
         const response = await fetch(
           `https://qdore-backend-final-final-last.vercel.app/api/cart/${mongoUserId}`,
           {
@@ -291,20 +305,60 @@ const Cart = () => {
             },
           }
         );
-        console.log("response", response);
+
         if (!response.ok) {
           throw new Error("Failed to fetch cart data");
         }
         const data = await response.json();
         setDbCart(data.products);
-      } catch (error) {
-        setError("Error fetching cart: " + error.message);
       }
+
+      const savedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+      setLocalCart(savedCart);
+    } catch (error) {
+      setError("Error fetching cart: " + error.message);
+    }
+  };
+
+  useEffect(() => {
+    let timeoutId;
+
+    const initializeCart = async () => {
+      setIsLoading(true);
+      try {
+        await fetchCart();
+        // Ensure loading screen shows for at least 1 second to prevent flickering
+        timeoutId = setTimeout(() => {
+          setIsLoading(false);
+          setIsInitialized(true);
+        }, 1000);
+      } catch (error) {
+        console.error("Error initializing cart:", error);
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    if (!isInitialized) {
+      initializeCart();
     }
 
-    const savedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    setLocalCart(savedCart);
-  };
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isInitialized]);
+
+  useEffect(() => {
+    if (location.state && location.state.fromOTP) {
+      const tempCart = JSON.parse(localStorage.getItem("cartItems"));
+      if (tempCart) {
+        navigate("/orderAddress", { state: { cart: tempCart } });
+        localStorage.removeItem("cartItems");
+      }
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     AOS.init({
@@ -314,9 +368,7 @@ const Cart = () => {
       delay: 100,
     });
     AOS.refresh();
-
-    fetchCart();
-  }, [userInfo]);
+  }, []);
 
   const handleUpdateQuantity = async (productId, newQuantity, isDbCart) => {
     if (isDbCart) {
@@ -628,6 +680,15 @@ const Cart = () => {
       })}
     </div>
   );
+
+  if (!isInitialized || isLoading) {
+    return (
+      <>
+        <Navbar />
+        <LoadingScreen />
+      </>
+    );
+  }
 
   return (
     <>
