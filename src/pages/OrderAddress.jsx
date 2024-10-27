@@ -9,7 +9,7 @@ import { FaPlus, FaTrashAlt } from "react-icons/fa";
 
 const OrderAddress = () => {
   const navigate = useNavigate();
-  const userInfo = useSelector((state) => state.auth.userInfo);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [addresses, setAddresses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newAddress, setNewAddress] = useState({
@@ -240,7 +240,9 @@ const OrderAddress = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">City</label>
+                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">
+                    City
+                  </label>
                   <input
                     type="text"
                     name="city"
@@ -251,7 +253,9 @@ const OrderAddress = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">State</label>
+                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">
+                    State
+                  </label>
                   <input
                     type="text"
                     name="state"
@@ -262,7 +266,9 @@ const OrderAddress = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">Pincode</label>
+                  <label className="block text-gray-700 mb-2 font-semibold font-roboto">
+                    Pincode
+                  </label>
                   <input
                     type="text"
                     name="pincode"
