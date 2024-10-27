@@ -8,7 +8,7 @@ import OrderConfirmationModal from "./BuyNowmodal";
 import Footer from "../components/Footer/Footer";
 import Navbar from "../components/Navbar/Navbar";
 const AddressSelection = () => {
-  const userInfo = useSelector((state) => state.auth.userInfo);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const navigate = useNavigate();
   const location = useLocation();
   const { orderData } = location.state || {};
