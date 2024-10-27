@@ -77,7 +77,7 @@ const products = [
 const PlantersAndVasesDesc = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const userInfo = useSelector((state) => state.auth.userInfo);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
   const [activeProduct, setActiveProduct] = useState(
     () => products.find((product) => product.id === productId) || products[0]
