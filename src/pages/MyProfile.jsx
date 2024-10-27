@@ -44,15 +44,15 @@ const MyProfile = () => {
     }
   }, [userInfo, navigate]);
 
-  useEffect(() => {
-    if (userDetails) {
-      setEditFormData({
-        username: userDetails.username || "",
-        email: userDetails.email || "",
-        mobile: userDetails.mobile || "",
-      });
-    }
-  }, [userDetails]);
+  // Only set initial form data when opening the modal
+  const handleEditProfile = () => {
+    setEditFormData({
+      username: userDetails.username || "",
+      email: userDetails.email || "",
+      mobile: userDetails.mobile || "",
+    });
+    setIsEditModalOpen(true);
+  };
 
   const fetchUserDetails = async (userId) => {
     try {
@@ -104,16 +104,22 @@ const MyProfile = () => {
     navigate(`/order/${orderId}`);
   };
 
-  const handleEditProfile = () => {
-    setIsEditModalOpen(true);
-  };
-
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
+    // Reset form data when closing modal
+    setEditFormData({
+      username: "",
+      email: "",
+      mobile: "",
+    });
   };
 
   const handleEditFormChange = (e) => {
-    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleEditFormSubmit = async (e) => {
@@ -130,13 +136,24 @@ const MyProfile = () => {
         }
       );
       if (response.data) {
-        setUserDetails({ ...userDetails, ...editFormData });
+        // Update both userDetails and localStorage
+        const updatedUserInfo = {
+          ...userInfo,
+          ...editFormData,
+        };
+        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+        setUserDetails((prev) => ({
+          ...prev,
+          ...editFormData,
+        }));
         toast.success("Profile updated successfully");
         setIsEditModalOpen(false);
+        // Refresh user details after update
+        fetchUserDetails(userInfo._id);
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      toast.error(error.response?.data?.message || "Failed to update profile");
     }
   };
 
@@ -170,10 +187,11 @@ const MyProfile = () => {
               {["profile", "addresses", "orders"].map((tab) => (
                 <button
                   key={tab}
-                  className={`flex-1 py-4 px-6 text-center font-semibold ${activeTab === tab
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-                    } transition duration-300`}
+                  className={`flex-1 py-4 px-6 text-center font-semibold ${
+                    activeTab === tab
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  } transition duration-300`}
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab === "profile" && <User className="inline-block mr-2" />}
@@ -195,7 +213,6 @@ const MyProfile = () => {
                     <h2 className="text-4xl font-semibold text-gray-900 font-serif">
                       Welcome, {userDetails.username || userInfo.username}!
                     </h2>
-
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {["email", "mobile"].map((field) => (
@@ -323,6 +340,7 @@ const MyProfile = () => {
             <LogOut className="mr-2" size={18} /> Logout
           </button>
         </div>
+
         {isEditModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
@@ -344,7 +362,7 @@ const MyProfile = () => {
                     value={editFormData.username}
                     onChange={handleEditFormChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    autoComplete="off" // Disable autofill
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -361,7 +379,7 @@ const MyProfile = () => {
                     value={editFormData.email}
                     onChange={handleEditFormChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    autoComplete="off" // Disable autofill
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -378,7 +396,7 @@ const MyProfile = () => {
                     value={editFormData.mobile}
                     onChange={handleEditFormChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                    autoComplete="off" // Disable autofill
+                    autoComplete="off"
                   />
                 </div>
                 <div className="flex justify-end space-x-2">
