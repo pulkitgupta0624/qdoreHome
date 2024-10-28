@@ -244,7 +244,7 @@ const AddressSelection = () => {
         };
 
         const orderResponse = await fetch(
-          "https://qdore-backend-final-final-last.vercel.app/api/users/buynoworder",
+          "http://localhost:3000/api/users/buynoworder",
           {
             method: "POST",
             headers: {
@@ -310,7 +310,7 @@ const AddressSelection = () => {
               };
 
               const orderResponse = await fetch(
-                "https://qdore-backend-final-final-last.vercel.app/api/users/buynoworder",
+                "http://localhost:3000/api/users/buynoworder",
                 {
                   method: "POST",
                   headers: {
