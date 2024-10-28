@@ -61,7 +61,6 @@ const OrderDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [shiprocketStatus, setShiprocketStatus] = useState("NEW");
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -75,7 +74,7 @@ const OrderDetailPage = () => {
           }
         );
         setOrder(data);
-
+        console.log("sdkjbsdjbsd", orderId);
         // Fetch Shiprocket status
         const shiprocketResponse = await axios.get(
           `https://qdore-backend-final-final-last.vercel.app/api/orders/${orderId}/shiprocketresponse`
@@ -87,13 +86,11 @@ const OrderDetailPage = () => {
           shiprocketStatus: shiprocketResponse.data.status,
         }));
       } catch (error) {
-        setError("Error fetching order details");
-        console.error("Error fetching order details:", error);
+        setError("");
       } finally {
         setLoading(false);
       }
     };
-
     fetchOrderDetails();
 
     // Set up interval to check every 3 hours
